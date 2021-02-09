@@ -7,12 +7,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uniregistrar.RegistrationException;
 import uniregistrar.driver.AbstractDriver;
+import uniregistrar.request.CreateRequest;
 import uniregistrar.request.DeactivateRequest;
-import uniregistrar.request.RegisterRequest;
 import uniregistrar.request.UpdateRequest;
+import uniregistrar.state.CreateState;
 import uniregistrar.state.DeactivateState;
-import uniregistrar.state.RegisterState;
-import uniregistrar.state.SetRegisterStateFinished;
+import uniregistrar.state.SetCreateStateFinished;
 import uniregistrar.state.UpdateState;
 
 import java.io.FileOutputStream;
@@ -89,7 +89,7 @@ public class DidWebDriver extends AbstractDriver {
 	}
 
 	@Override
-	public RegisterState register(RegisterRequest request) throws RegistrationException {
+	public CreateState create(CreateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
 		DIDDocument document = request.getDidDocument();
 		if (document == null) throw new RegistrationException("DID Doc is null!");
@@ -103,8 +103,14 @@ public class DidWebDriver extends AbstractDriver {
 			throw new RegistrationException(e.getMessage());
 		}
 
-		RegisterState registerState = RegisterState.build();
-		SetRegisterStateFinished.setStateFinished(registerState, document.getId().toString(), null);
+
+		Map<String, Object> result = new HashMap<>();
+		result.put("didDocument", document);
+
+		CreateState registerState = CreateState.build();
+		registerState.setDidState(result);
+
+		SetCreateStateFinished.setStateFinished(registerState, document.getId().toString(), null);
 
 		return registerState;
 	}
@@ -155,6 +161,11 @@ public class DidWebDriver extends AbstractDriver {
 		}
 
 		UpdateState updateState = UpdateState.build();
+		Map<String, Object> result = new HashMap<>();
+		result.put("didDocument", document);
+
+		updateState.setDidState(result);
+
 		// TODO: Set Update state finished
 
 		return updateState;
@@ -187,7 +198,7 @@ public class DidWebDriver extends AbstractDriver {
 
 	@Override
 	public Map<String, Object> properties() throws RegistrationException {
-		return null;
+		return properties;
 	}
 
 	public Map<String, Object> getProperties() {
