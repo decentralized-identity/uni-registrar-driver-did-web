@@ -149,7 +149,7 @@ public class DidWebDriver extends AbstractDriver {
 		if (document == null) throw new RegistrationException("DID Doc is null!");
 
 		Path didPath = validateAndGetPath(document.getId().toString());
-		if (!Files.exists(didPath)) throw new RegistrationException("DID is not exists!");
+		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
 
 		Path didDocFile = Paths.get(didPath.toString());
 
@@ -162,11 +162,9 @@ public class DidWebDriver extends AbstractDriver {
 
 		UpdateState updateState = UpdateState.build();
 		Map<String, Object> result = new HashMap<>();
+		result.put("state", "finished");
 		result.put("didDocument", document);
-
 		updateState.setDidState(result);
-
-		// TODO: Set Update state finished
 
 		return updateState;
 	}
@@ -177,7 +175,7 @@ public class DidWebDriver extends AbstractDriver {
 		if (request.getIdentifier() == null) throw new RegistrationException("Identifier is null!");
 
 		Path didPath = validateAndGetPath(request.getIdentifier());
-		if (!Files.exists(didPath)) throw new RegistrationException("DID is not exists!");
+		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
 
 		Path didDocFile = Paths.get(didPath.toString(), FILE_NAME);
 
@@ -189,8 +187,7 @@ public class DidWebDriver extends AbstractDriver {
 
 
 		DeactivateState deactivateState = DeactivateState.build();
-
-		// TODO: Set Deactivation state finished
+		deactivateState.getDidState().put("state", "finished");
 
 		return deactivateState;
 
