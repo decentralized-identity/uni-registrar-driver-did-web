@@ -35,7 +35,6 @@ public class DidWebDriver extends AbstractDriver {
 	public static final String METHOD_PREFIX = "did:web:";
 	public static final String FILE_NAME = "/did.json";
 	private static final Logger log = LogManager.getLogger(DidWebDriver.class);
-	private static final String GENERATED_FOLDER = "generated";
 	private URL baseUrl;
 	private Path basePath;
 	private Map<String, Object> properties;
@@ -105,7 +104,7 @@ public class DidWebDriver extends AbstractDriver {
 		String did = null;
 
 		if (!idExists) {
-			did = METHOD_PREFIX + baseUrl.getHost() + ":" + GENERATED_FOLDER + ":" + id;
+			did = METHOD_PREFIX + baseUrl.getHost() + ":" + id;
 			document.getJsonObject().put("id", URI.create(did));
 		}
 
@@ -202,7 +201,7 @@ public class DidWebDriver extends AbstractDriver {
 	}
 
 	private Path generateNewPath(UUID id) {
-		return Paths.get(basePath.toString(), GENERATED_FOLDER, id.toString());
+		return Paths.get(basePath.toString(), id.toString());
 	}
 
 	public static void storeDidDocument(Path filePath, DIDDocument document) throws IOException {
