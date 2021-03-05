@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -27,15 +28,16 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class DidWebDriver extends AbstractDriver {
 
 	public static final String METHOD_PREFIX = "did:web:";
 	public static final String FILE_NAME = "/did.json";
 	private static final Logger log = LogManager.getLogger(DidWebDriver.class);
+	private static final String GENERATED_FOLDER = "generated";
 	private URL baseUrl;
 	private Path basePath;
-
 	private Map<String, Object> properties;
 
 	public DidWebDriver() {
@@ -94,10 +96,18 @@ public class DidWebDriver extends AbstractDriver {
 		DIDDocument document = request.getDidDocument();
 
 		if (document == null) throw new RegistrationException("DID Doc is null!");
-		if(document.getId() == null) throw new RegistrationException("DID is null");
+		boolean idExists = document.getId() != null;
+		UUID id = null;
 
-		Path didPath = validateAndGetPath(document.getId().toString());
+		Path didPath = idExists ? validateAndGetPath(document.getId().toString()) : generateNewPath(id = UUID.randomUUID());
 		if (Files.exists(didPath)) throw new RegistrationException("DID is already exists!");
+
+		String did = null;
+
+		if (!idExists) {
+			did = METHOD_PREFIX + baseUrl.getHost() + ":" + GENERATED_FOLDER + ":" + id;
+			document.getJsonObject().put("id", URI.create(did));
+		}
 
 		try {
 			storeDidDocument(didPath, document);
@@ -112,35 +122,9 @@ public class DidWebDriver extends AbstractDriver {
 		CreateState registerState = CreateState.build();
 		registerState.setDidState(result);
 
-		SetCreateStateFinished.setStateFinished(registerState, document.getId().toString(), null);
+		SetCreateStateFinished.setStateFinished(registerState, idExists ? document.getId().toString() : did, null);
 
 		return registerState;
-	}
-
-	public Path validateAndGetPath(String did) throws RegistrationException {
-		if (did == null) throw new RegistrationException("DID is null!");
-		if (!did.startsWith(METHOD_PREFIX)) throw new RegistrationException("Unknown did method");
-
-
-		String[] parsed = did.substring(DidWebDriver.METHOD_PREFIX.length()).split(":");
-		if (parsed.length < 2) throw new RegistrationException("DID Format error!");
-		if (!baseUrl.getHost().equalsIgnoreCase(parsed[0])) throw new RegistrationException("Domain name mismatch!");
-
-		return Paths.get(basePath.toString(), Arrays.stream(parsed)
-													.skip(1)
-													.map(x -> x + "/")
-													.reduce("/", String::concat));
-
-	}
-
-	public static void storeDidDocument(Path filePath, DIDDocument document) throws IOException {
-
-		Files.createDirectories(filePath);
-
-		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(filePath + FILE_NAME), StandardCharsets.UTF_8)) {
-			fileWriter.write(document.toJson());
-			fileWriter.flush();
-		}
 	}
 
 	@Override
@@ -149,7 +133,7 @@ public class DidWebDriver extends AbstractDriver {
 		DIDDocument document = request.getDidDocument();
 
 		if (document == null) throw new RegistrationException("DID Doc is null!");
-		if(document.getId() == null) throw new RegistrationException("DID is null");
+		if (document.getId() == null) throw new RegistrationException("DID is null");
 
 		Path didPath = validateAndGetPath(document.getId().toString());
 		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
@@ -199,6 +183,36 @@ public class DidWebDriver extends AbstractDriver {
 	@Override
 	public Map<String, Object> properties() throws RegistrationException {
 		return properties;
+	}
+
+	public Path validateAndGetPath(String did) throws RegistrationException {
+		if (did == null) throw new RegistrationException("DID is null!");
+		if (!did.startsWith(METHOD_PREFIX)) throw new RegistrationException("Unknown did method");
+
+
+		String[] parsed = did.substring(DidWebDriver.METHOD_PREFIX.length()).split(":");
+		if (parsed.length < 2) throw new RegistrationException("DID Format error!");
+		if (!baseUrl.getHost().equalsIgnoreCase(parsed[0])) throw new RegistrationException("Domain name mismatch!");
+
+		return Paths.get(basePath.toString(), Arrays.stream(parsed)
+													.skip(1)
+													.map(x -> x + "/")
+													.reduce("/", String::concat));
+
+	}
+
+	private Path generateNewPath(UUID id) {
+		return Paths.get(basePath.toString(), GENERATED_FOLDER, id.toString());
+	}
+
+	public static void storeDidDocument(Path filePath, DIDDocument document) throws IOException {
+
+		Files.createDirectories(filePath);
+
+		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(filePath + FILE_NAME), StandardCharsets.UTF_8)) {
+			fileWriter.write(document.toJson());
+			fileWriter.flush();
+		}
 	}
 
 	public Map<String, Object> getProperties() {
