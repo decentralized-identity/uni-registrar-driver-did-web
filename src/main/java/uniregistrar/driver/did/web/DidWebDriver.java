@@ -92,7 +92,9 @@ public class DidWebDriver extends AbstractDriver {
 	public CreateState create(CreateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
 		DIDDocument document = request.getDidDocument();
+
 		if (document == null) throw new RegistrationException("DID Doc is null!");
+		if(document.getId() == null) throw new RegistrationException("DID is null");
 
 		Path didPath = validateAndGetPath(document.getId().toString());
 		if (Files.exists(didPath)) throw new RegistrationException("DID is already exists!");
@@ -147,6 +149,7 @@ public class DidWebDriver extends AbstractDriver {
 		DIDDocument document = request.getDidDocument();
 
 		if (document == null) throw new RegistrationException("DID Doc is null!");
+		if(document.getId() == null) throw new RegistrationException("DID is null");
 
 		Path didPath = validateAndGetPath(document.getId().toString());
 		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
