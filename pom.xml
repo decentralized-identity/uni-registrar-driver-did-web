@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -32,7 +32,6 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 
-		<jsonld-common-java.version>0.2-SNAPSHOT</jsonld-common-java.version>
 		<junit-jupiter.version>5.7.0</junit-jupiter.version>
 	</properties>
 
@@ -82,6 +81,7 @@
 								</jettyEnvXml>
 								<webInfIncludeJarPattern>^$</webInfIncludeJarPattern>
 								<containerIncludeJarPattern>^$</containerIncludeJarPattern>
+								<throwUnavailableOnStartupException>true</throwUnavailableOnStartupException>
 							</webApp>
 						</configuration>
 					</plugin>
@@ -93,25 +93,19 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>decentralized-identity</groupId>
 			<artifactId>uni-registrar-driver</artifactId>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>decentralized-identity</groupId>
-			<artifactId>jsonld-common-java</artifactId>
-			<version>${jsonld-common-java.version}</version>
+			<artifactId>did-common-java</artifactId>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>decentralized-identity</groupId>
-			<artifactId>did-common-java</artifactId>
-			<scope>compile</scope>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -135,5 +129,4 @@
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>
-
 </project>

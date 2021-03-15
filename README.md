@@ -22,4 +22,5 @@ docker run -p 9080:9080 universalregistrar/driver-did-web
 ```
 uniregistrar_driver_did_web_basePath
 uniregistrar_driver_did_web_baseUrl
+uniregistrar_driver_did_web_generatedFolder
 ```

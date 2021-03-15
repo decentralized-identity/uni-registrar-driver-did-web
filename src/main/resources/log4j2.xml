@@ -7,6 +7,10 @@
 		</Console>
 	</Appenders>
 
+	<Logger name="uniregistrar.driver.did.web" level="debug" additivity="false">
+		<AppenderRef ref="Console"/>
+	</Logger>
+
 	<Loggers>
 		<Root level="info">
 			<AppenderRef ref="Console"/>

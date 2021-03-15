@@ -16,6 +16,7 @@ RUN cd /opt/driver-did-web && mvn clean install package -N -DskipTests
 
 ENV uniregistrar_driver_did_web_basePath=
 ENV uniregistrar_driver_did_web_baseUrl=
+ENV uniregistrar_driver_did_web_generatedFolder=
 
 # done
 
