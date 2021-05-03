@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uniregistrar.RegistrationException;
 import uniregistrar.driver.AbstractDriver;
+import uniregistrar.driver.did.web.util.ErrorMessages;
 import uniregistrar.request.CreateRequest;
 import uniregistrar.request.DeactivateRequest;
 import uniregistrar.request.UpdateRequest;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,12 +50,11 @@ public class DidWebDriver extends AbstractDriver {
 																	.map(key -> key + "=" + properties.get(key))
 																	.collect(Collectors.joining(", ", "{", "}")));
 
-		if (baseUrl == null) throw new IllegalArgumentException("Base URL is not defined!");
-		if (!"https".equals(baseUrl.getProtocol())) throw new IllegalArgumentException(
-				"Protocol must be https. Provided URL protocol is " + baseUrl.getProtocol());
-		if (basePath == null) throw new IllegalArgumentException("Base path is not defined!");
-		if (!Files.isDirectory(basePath)) throw new IllegalArgumentException("Base path is not a directory!");
-		if (!Files.isWritable(basePath)) throw new IllegalArgumentException("Base path is not writable!");
+		if (baseUrl == null) throw new IllegalArgumentException(ErrorMessages.BASE_URL_NOT_DEFINED);
+		if (!"https".equals(baseUrl.getProtocol())) throw new IllegalArgumentException(ErrorMessages.WRONG_URL_PROTOCOL);
+		if (basePath == null) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DEFINED);
+		if (!Files.isDirectory(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DIRECTORY);
+		if (!Files.isWritable(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_WRITEABLE);
 
 	}
 
@@ -80,11 +79,13 @@ public class DidWebDriver extends AbstractDriver {
 
 	@Override
 	public CreateState create(CreateRequest request) throws RegistrationException {
-
 		Preconditions.checkNotNull(request);
+
+		log.debug("Create request for: {}", () -> request);
+
 		DIDDocument document = request.getDidDocument();
 
-		if (document == null) throw new RegistrationException("DID Document is null!");
+		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 
 		// Check for id in the DID document
 		boolean idExists = document.getId() != null;
@@ -92,7 +93,7 @@ public class DidWebDriver extends AbstractDriver {
 
 		// Checks if given DID already exists, generates a random ID if no ID is provided in the document
 		Path didPath = idExists ? validateAndGetPath(document.getId().toString()) : generateNewPath(id = UUID.randomUUID());
-		if (Files.exists(didPath)) throw new RegistrationException("Given DID already exists!");
+		if (Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_ALREADY_EXISTS);
 
 		String did = null;
 
@@ -101,14 +102,14 @@ public class DidWebDriver extends AbstractDriver {
 			did = METHOD_PREFIX + baseUrl.getHost() + ":" +
 					(Strings.isNullOrEmpty(generatedFolder) ? id : generatedFolder + ":" + id);
 
-			document.getJsonObject().put("id", URI.create(did));
+			document.getJsonObject().put("id", did);
 		}
 
 		try {
 			storeDidDocument(didPath, document);
 		} catch (IOException e) {
 			log.error(e);
-			throw new RegistrationException("Exception: Cannot store the DID document for " + did);
+			throw new RegistrationException("Cannot store the DID document for " + did);
 		}
 
 
@@ -120,6 +121,8 @@ public class DidWebDriver extends AbstractDriver {
 
 		SetCreateStateFinished.setStateFinished(registerState, idExists ? document.getId().toString() : did, null);
 
+		log.debug("Registration is finished: {}", () -> registerState);
+
 		return registerState;
 	}
 
@@ -128,11 +131,11 @@ public class DidWebDriver extends AbstractDriver {
 		Preconditions.checkNotNull(request);
 		DIDDocument document = request.getDidDocument();
 
-		if (document == null) throw new RegistrationException("DID Document is null!");
-		if (document.getId() == null) throw new RegistrationException("DID is null!");
+		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		if (document.getId() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
 		Path didPath = validateAndGetPath(document.getId().toString());
-		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
+		if (!Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_DOESNT_EXIST);
 
 		Path didDocFile = Paths.get(didPath.toString());
 
@@ -141,7 +144,7 @@ public class DidWebDriver extends AbstractDriver {
 			storeDidDocument(didDocFile, document);
 		} catch (IOException e) {
 			log.error(e);
-			throw new RegistrationException("Exception: Cannot store the DID document for " + document.getId());
+			throw new RegistrationException("Cannot store the DID document for " + document.getId());
 		}
 
 		UpdateState updateState = UpdateState.build();
@@ -157,10 +160,10 @@ public class DidWebDriver extends AbstractDriver {
 	@Override
 	public DeactivateState deactivate(DeactivateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
-		if (request.getIdentifier() == null) throw new RegistrationException("Identifier is null!");
+		if (request.getIdentifier() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
 		Path didPath = validateAndGetPath(request.getIdentifier());
-		if (!Files.exists(didPath)) throw new RegistrationException("DID does not exists!");
+		if (!Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_DOESNT_EXIST);
 
 		Path didDocFile = Paths.get(didPath.toString(), FILE_NAME);
 
@@ -181,14 +184,14 @@ public class DidWebDriver extends AbstractDriver {
 	}
 
 	private Path validateAndGetPath(String did) throws RegistrationException {
-		if (did == null) throw new RegistrationException("DID is null!");
-		if (!did.startsWith(METHOD_PREFIX)) throw new RegistrationException("Unknown did");
+		if (did == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
+		if (!did.startsWith(METHOD_PREFIX)) throw new RegistrationException(ErrorMessages.METHOD_PREFIX_MISMATCH);
 
 
 		String[] parsed = did.substring(DidWebDriver.METHOD_PREFIX.length()).split(":");
-		if (parsed.length < 2) throw new RegistrationException("DID Format error!");
+		if (parsed.length < 2) throw new RegistrationException(ErrorMessages.DID_FORMAT_ERROR);
 
-		if (!baseUrl.getHost().equalsIgnoreCase(parsed[0])) throw new RegistrationException("Domain name mismatch!");
+		if (!baseUrl.getHost().equalsIgnoreCase(parsed[0])) throw new RegistrationException(ErrorMessages.WRONG_DOMAIN);
 
 		return Paths.get(basePath.toString(), Arrays.stream(parsed)
 													.skip(1)
@@ -198,9 +201,10 @@ public class DidWebDriver extends AbstractDriver {
 	}
 
 	private Path generateNewPath(UUID id) {
-		if(Strings.isNullOrEmpty(generatedFolder)) {
+		if (Strings.isNullOrEmpty(generatedFolder)) {
 			return Paths.get(basePath.toString(), id.toString());
-		} else
+		}
+		else
 			return Paths.get(basePath.toString(), generatedFolder, id.toString());
 	}
 
@@ -218,9 +222,16 @@ public class DidWebDriver extends AbstractDriver {
 		return properties;
 	}
 
+	/**
+	 * Make base path changeable to avoid file system challenges
+	 * @param basePath
+	 */
+	public void setBasePath(Path basePath) {
+		this.basePath = basePath;
+	}
 
 	public final void setProperties(Map<String, Object> properties) {
-		Preconditions.checkState(this.properties == null, "Properties is already set!");
+		Preconditions.checkState(this.properties == null, ErrorMessages.PROPERTIES_ALREADY_SET);
 		this.properties = Map.copyOf(properties);
 		configureFromProperties();
 	}
