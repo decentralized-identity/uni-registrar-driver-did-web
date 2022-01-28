@@ -13,7 +13,7 @@ import uniregistrar.request.DeactivateRequest;
 import uniregistrar.request.UpdateRequest;
 import uniregistrar.state.CreateState;
 import uniregistrar.state.DeactivateState;
-import uniregistrar.state.SetCreateStateFinished;
+import uniregistrar.state.SetStateFinished;
 import uniregistrar.state.UpdateState;
 
 import java.io.FileOutputStream;
@@ -119,7 +119,7 @@ public class DidWebDriver extends AbstractDriver {
 		CreateState registerState = CreateState.build();
 		registerState.setDidState(result);
 
-		SetCreateStateFinished.setStateFinished(registerState, idExists ? document.getId().toString() : did, null);
+		SetStateFinished.setStateFinished(registerState, idExists ? document.getId().toString() : did, null);
 
 		log.debug("Registration is finished: {}", () -> registerState);
 
