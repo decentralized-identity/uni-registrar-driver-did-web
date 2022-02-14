@@ -160,9 +160,9 @@ public class DidWebDriver extends AbstractDriver {
 	@Override
 	public DeactivateState deactivate(DeactivateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
-		if (request.getIdentifier() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
+		if (request.getDid() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
-		Path didPath = validateAndGetPath(request.getIdentifier());
+		Path didPath = validateAndGetPath(request.getDid());
 		if (!Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_DOESNT_EXIST);
 
 		Path didDocFile = Paths.get(didPath.toString(), FILE_NAME);

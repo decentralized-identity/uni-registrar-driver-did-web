@@ -193,7 +193,7 @@ public class DidWebDriverTest {
 	void deactivateWithNonRegisteredDidTest() {
 
 		DeactivateRequest request = new DeactivateRequest();
-		request.setIdentifier(testId);
+		request.setDid(testId);
 
 		assertThrows(RegistrationException.class,
 					 () -> driver.deactivate(request),
