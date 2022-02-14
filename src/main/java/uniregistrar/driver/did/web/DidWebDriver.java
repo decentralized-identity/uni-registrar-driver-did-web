@@ -132,9 +132,9 @@ public class DidWebDriver extends AbstractDriver {
 		DIDDocument document = request.getDidDocument();
 
 		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
-		if (document.getId() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
+		if (request.getDid() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
-		Path didPath = validateAndGetPath(document.getId().toString());
+		Path didPath = validateAndGetPath(request.getDid());
 		if (!Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_DOESNT_EXIST);
 
 		Path didDocFile = Paths.get(didPath.toString());
