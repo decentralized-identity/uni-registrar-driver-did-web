@@ -129,9 +129,11 @@ public class DidWebDriver extends AbstractDriver {
 	@Override
 	public UpdateState update(UpdateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
-		DIDDocument document = request.getDidDocument();
 
-		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		if (request.getDidDocument() == null || request.getDidDocument().get(0) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+
+		DIDDocument document = request.getDidDocument().get(0);
+
 		if (request.getDid() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
 		Path didPath = validateAndGetPath(request.getDid());
