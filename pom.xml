@@ -6,8 +6,6 @@
 	<artifactId>uni-registrar-driver-did-web</artifactId>
 	<packaging>${packaging.type}</packaging>
 	<name>uni-registrar-driver-did-v1</name>
-	<!--Standalone components need version tag	-->
-	<version>0.2.0</version>
 
 	<parent>
 		<groupId>decentralized-identity</groupId>
