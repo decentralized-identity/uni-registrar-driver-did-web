@@ -3,7 +3,10 @@ package uniregistrar.driver.did.web.util;
 public class ErrorMessages {
 
 	public static final String DID_ALREADY_EXISTS = "Given DID already exists!";
-	public static final String DID_DOC_IS_NULL = "DID Document is Null!";
+	public static final String DID_DOC_IS_NULL = "DID Document is null!";
+	public static final String DID_DOC_OP_IS_NULL = "DID Document Operation is null!";
+	public static final String DID_DOC_OP_IS_INVALID = "Only 'setDidDocument' DID Document Operation operation must be provided!";
+	public static final String MULTIPLE_DID_DOCS_IN_REQUEST = "Only one DIDDocument must be provided!";
 	public static final String DID_IS_NULL = "DID is Null!";
 	public static final String DID_DOESNT_EXIST = "DID does not exist!";
 	public static final String METHOD_PREFIX_MISMATCH = "Not a DID of did:web method!";

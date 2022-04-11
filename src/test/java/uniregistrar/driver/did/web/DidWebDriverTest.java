@@ -30,6 +30,7 @@ public class DidWebDriverTest {
 	private static final String baseUrl = "https://localhost";
 	private static final String testId = "did:web:localhost:testDid42";
 	private static Map<String, Object> props;
+	private static final String DID_DOC_OP = "setDidDocument";
 	private static DidWebDriver driver;
 	private static DIDDocument testDoc;
 	private static Path absoluteBasePath;
@@ -138,6 +139,7 @@ public class DidWebDriverTest {
 		UpdateRequest request = new UpdateRequest();
 		request.setDid(createdDoc.getId().toString());
 		request.setDidDocument(List.of(updateDoc));
+		request.setDidDocumentOperation(List.of(DID_DOC_OP));
 		UpdateState state = driver.update(request);
 		DIDDocument rd = (DIDDocument) state.getDidState().get("didDocument");
 
@@ -152,6 +154,44 @@ public class DidWebDriverTest {
 		assertThrows(RegistrationException.class,
 					 () -> driver.update(new UpdateRequest()),
 					 ErrorMessages.DID_DOC_IS_NULL);
+	}
+
+	@Test
+	@DisplayName("update: with multiple docs throws error")
+	void updateWithMultipleDocsTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc, testDoc));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.MULTIPLE_DID_DOCS_IN_REQUEST);
+	}
+
+	@Test
+	@DisplayName("update: with multiple didDocumentOperation throws error")
+	void updateWithMultipleDocOpTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc));
+		request.setDidDocumentOperation(List.of(DID_DOC_OP,DID_DOC_OP));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.DID_DOC_OP_IS_INVALID);
+	}
+
+	@Test
+	@DisplayName("update: with invalid didDocumentOperation throws error")
+	void updateWithInvalidDocOpTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc));
+		request.setDidDocumentOperation(List.of("yo"));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.DID_DOC_OP_IS_INVALID);
 	}
 
 	@Test

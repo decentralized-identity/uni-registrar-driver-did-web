@@ -91,7 +91,7 @@ public class DidWebDriver extends AbstractDriver {
 		boolean idExists = document.getId() != null;
 		UUID id = null;
 
-		// Checks if given DID already exists, generates a random ID if no ID is provided in the document
+		// Checks if given DID already exist, generates a random ID if no ID is provided in the document
 		Path didPath = idExists ? validateAndGetPath(document.getId().toString()) : generateNewPath(id = UUID.randomUUID());
 		if (Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_ALREADY_EXISTS);
 
@@ -128,9 +128,7 @@ public class DidWebDriver extends AbstractDriver {
 
 	@Override
 	public UpdateState update(UpdateRequest request) throws RegistrationException {
-		Preconditions.checkNotNull(request);
-
-		if (request.getDidDocument() == null || request.getDidDocument().get(0) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		validateUpdateRequest(request);
 
 		DIDDocument document = request.getDidDocument().get(0);
 
@@ -157,6 +155,16 @@ public class DidWebDriver extends AbstractDriver {
 		updateState.setDidState(result);
 
 		return updateState;
+	}
+
+	private static void validateUpdateRequest(UpdateRequest request) throws RegistrationException {
+		Preconditions.checkNotNull(request);
+
+		if(request.getDidDocumentOperation() == null) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_NULL);
+		if(request.getDidDocumentOperation().size()>1 || !"setDidDocument".equals(request.getDidDocumentOperation().get(0))) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_INVALID);
+
+		if (request.getDidDocument() == null || request.getDidDocument().get(0) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		if(request.getDidDocument().size() > 1) throw new RegistrationException(ErrorMessages.MULTIPLE_DID_DOCS_IN_REQUEST);
 	}
 
 	@Override
