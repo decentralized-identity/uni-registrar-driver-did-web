@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>uni-registrar-driver-did-web</artifactId>
 	<packaging>${packaging.type}</packaging>
-	<name>uni-registrar-driver-did-v1</name>
+	<name>uni-registrar-driver-did-web</name>
 
 	<parent>
 		<groupId>decentralized-identity</groupId>
