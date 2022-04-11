@@ -20,6 +20,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,6 +30,7 @@ public class DidWebDriverTest {
 	private static final String baseUrl = "https://localhost";
 	private static final String testId = "did:web:localhost:testDid42";
 	private static Map<String, Object> props;
+	private static final String DID_DOC_OP = "setDidDocument";
 	private static DidWebDriver driver;
 	private static DIDDocument testDoc;
 	private static Path absoluteBasePath;
@@ -43,7 +45,7 @@ public class DidWebDriverTest {
 
 
 		props = new HashMap<>();
-		props.put("baseUrl", "https://localhost");
+		props.put("baseUrl", baseUrl);
 		props.put("basePath", absoluteBasePath.toString());
 		props.put("generatedFolder", "generated");
 
@@ -135,7 +137,9 @@ public class DidWebDriverTest {
 										   .build();
 
 		UpdateRequest request = new UpdateRequest();
-		request.setDidDocument(updateDoc);
+		request.setDid(createdDoc.getId().toString());
+		request.setDidDocument(List.of(updateDoc));
+		request.setDidDocumentOperation(List.of(DID_DOC_OP));
 		UpdateState state = driver.update(request);
 		DIDDocument rd = (DIDDocument) state.getDidState().get("didDocument");
 
@@ -153,11 +157,49 @@ public class DidWebDriverTest {
 	}
 
 	@Test
+	@DisplayName("update: with multiple docs throws error")
+	void updateWithMultipleDocsTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc, testDoc));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.MULTIPLE_DID_DOCS_IN_REQUEST);
+	}
+
+	@Test
+	@DisplayName("update: with multiple didDocumentOperation throws error")
+	void updateWithMultipleDocOpTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc));
+		request.setDidDocumentOperation(List.of(DID_DOC_OP,DID_DOC_OP));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.DID_DOC_OP_IS_INVALID);
+	}
+
+	@Test
+	@DisplayName("update: with invalid didDocumentOperation throws error")
+	void updateWithInvalidDocOpTest() {
+		UpdateRequest request = new UpdateRequest();
+		testDoc.setJsonObjectKeyValue("id", testId);
+		request.setDidDocument(List.of(testDoc));
+		request.setDidDocumentOperation(List.of("yo"));
+
+		assertThrows(RegistrationException.class,
+				() -> driver.update(new UpdateRequest()),
+				ErrorMessages.DID_DOC_OP_IS_INVALID);
+	}
+
+	@Test
 	@DisplayName("update: without DID throws error")
 	void updateWithoutDidTest() {
 
 		UpdateRequest request = new UpdateRequest();
-		request.setDidDocument(testDoc);
+		request.setDidDocument(List.of(testDoc));
 
 		assertThrows(RegistrationException.class,
 					 () -> driver.update(new UpdateRequest()),
@@ -171,7 +213,7 @@ public class DidWebDriverTest {
 
 		UpdateRequest request = new UpdateRequest();
 		testDoc.setJsonObjectKeyValue("id", testId);
-		request.setDidDocument(testDoc);
+		request.setDidDocument(List.of(testDoc));
 
 		assertThrows(RegistrationException.class,
 					 () -> driver.update(request),
@@ -200,10 +242,7 @@ public class DidWebDriverTest {
 					 ErrorMessages.DID_DOESNT_EXIST);
 	}
 
-
-	@Test
-	@DisplayName("register: with given identifier")
-	DIDDocument registerWithGivenIdTest() throws RegistrationException {
+	private DIDDocument registerWithGivenIdTest() throws RegistrationException {
 
 		CreateRequest request = new CreateRequest();
 		testDoc.setJsonObjectKeyValue("id", testId);
