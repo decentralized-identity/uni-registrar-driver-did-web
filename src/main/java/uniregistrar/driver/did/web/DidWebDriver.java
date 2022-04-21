@@ -160,7 +160,7 @@ public class DidWebDriver extends AbstractDriver {
 	private static void validateUpdateRequest(UpdateRequest request) throws RegistrationException {
 		Preconditions.checkNotNull(request);
 
-		if(request.getDidDocumentOperation() == null) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_NULL);
+		if(request.getDidDocumentOperation() == null) request.setDidDocumentOperation(List.of("setDidDocument"));
 		if(request.getDidDocumentOperation().size()>1 || !"setDidDocument".equals(request.getDidDocumentOperation().get(0))) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_INVALID);
 
 		if (request.getDidDocument() == null || request.getDidDocument().get(0) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
