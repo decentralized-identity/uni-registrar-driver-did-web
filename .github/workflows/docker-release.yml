@@ -19,7 +19,7 @@ jobs:
     uses: danubetech/workflows/.github/workflows/docker-release.yml@main
     with:
       GLOBAL_IMAGE_NAME: universalregistrar/driver-did-web
-      GLOBAL_REPO_NAME: repo.danubetech.com:5000
+      GLOBAL_REPO_NAME: docker.io
       GLOBAL_FRAMEWORK: maven
       PATH_TO_DOCKERFILE: docker/Dockerfile
     secrets:
