@@ -101,7 +101,7 @@
 								</systemProperty>
 								<systemProperty>
 									<name>log4j2.configurationFile</name>
-									<value>file:${basedir}/src/test/resources/log4j2-test.xml</value>
+									<value>file:${basedir}/src/resources/log4j2.xml</value>
 								</systemProperty>
 							</systemProperties>
 							<webApp>
@@ -133,12 +133,10 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j-impl</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>decentralized-identity</groupId>
