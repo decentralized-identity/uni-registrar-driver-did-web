@@ -12,8 +12,17 @@ identifiers.
 
 ## Build and Run (Docker)
 
+### Build
 ```
 docker build -f ./docker/Dockerfile . -t universalregistrar/driver-did-web
+```
+
+### Run
+```
+docker run -p 9080:9080 -v dids-volume:<uniregistrar_driver_did_web_basePath> universalregistrar/driver-did-web
+```
+mounting a volume is not needed if the `uniregistrar_driver_did_web_basePath` is set under /opt
+```
 docker run -p 9080:9080 universalregistrar/driver-did-web
 ```
 
