@@ -11,6 +11,8 @@ public class ErrorMessages {
 	public static final String DID_DOESNT_EXIST = "DID does not exist!";
 	public static final String METHOD_PREFIX_MISMATCH = "Not a DID of did:web method!";
 	public static final String BASE_PATH_NOT_DIRECTORY = "Base path is not a directory!";
+
+	public static final String BASE_PATH_DOES_NOT_EXIST = "Base path does not exist!";
 	public static final String BASE_PATH_NOT_WRITEABLE = "Base path is not writable!";
 	public static final String BASE_PATH_NOT_DEFINED = "Base path is not defined!";
 	public static final String BASE_URL_NOT_DEFINED = "Base URL is not defined!";

@@ -53,8 +53,18 @@ public class DidWebDriver extends AbstractDriver {
 		if (baseUrl == null) throw new IllegalArgumentException(ErrorMessages.BASE_URL_NOT_DEFINED);
 		if (!"https".equals(baseUrl.getProtocol())) throw new IllegalArgumentException(ErrorMessages.WRONG_URL_PROTOCOL);
 		if (basePath == null) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DEFINED);
-		if (!Files.isDirectory(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DIRECTORY);
-		if (!Files.isWritable(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_WRITEABLE);
+
+		if (!Files.exists(basePath)) {
+			log.warn(ErrorMessages.BASE_PATH_DOES_NOT_EXIST + " Base path: " + basePath);
+			log.info("Trying to generate base path directories!");
+			try {
+				Files.createDirectories(basePath);
+			} catch (IOException e) {
+				throw new RuntimeException("Cannot create directories for base path: " + basePath, e);
+			}
+		}
+		if (!Files.isDirectory(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DIRECTORY + " Base path: " + basePath);
+		if (!Files.isWritable(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_WRITEABLE + " Base path: " + basePath);
 
 	}
 
