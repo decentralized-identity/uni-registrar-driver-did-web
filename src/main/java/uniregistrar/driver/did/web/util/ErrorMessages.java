@@ -17,7 +17,7 @@ public class ErrorMessages {
 	public static final String BASE_PATH_NOT_DEFINED = "Base path is not defined!";
 	public static final String BASE_URL_NOT_DEFINED = "Base URL is not defined!";
 	public static final String WRONG_URL_PROTOCOL = "Provided URL protocol is not HTTPS!";
-	public static final String WRONG_DOMAIN = "Domain name mismatch!";
+	public static final String WRONG_HOST = "Unsupported host name!";
 	public static final String DID_FORMAT_ERROR = "DID Format error!";
 	public static final String PROPERTIES_ALREADY_SET = "Properties are already set!";
 }

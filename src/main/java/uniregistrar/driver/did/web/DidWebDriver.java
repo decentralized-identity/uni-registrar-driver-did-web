@@ -96,21 +96,25 @@ public class DidWebDriver extends AbstractDriver {
 		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 
 		Map<String, Object> options = request.getOptions();
-		String domain = options == null ? null : (String) options.get("domain");
 
 		Path didPath;
 
 		// Use generated id to build DID when given document doesn't contain an ID
 		if (document.getId() == null) {
 
+			String host = options == null ? null : (String) options.get("host");
+			if (host == null) host = baseUrls.get(0).getHost();
+
 			UUID uuid = UUID.randomUUID();
 			didPath = generateNewPath(uuid);
-			String did = generateNewDid(uuid, domain);
+			String did = validatedAndGenerateNewDid(uuid, host);
+			if (log.isInfoEnabled()) log.info("Generated UUID " + uuid + " and new path " + didPath + " and DID: " + did);
 
 			document.getJsonObject().put("id", did);
 		} else {
 
 			didPath = validateAndGetPath(document.getId().toString());
+			if (log.isInfoEnabled()) log.info("Validated path: " + didPath);
 		}
 
 		// Checks if given DID already exist
@@ -209,8 +213,9 @@ public class DidWebDriver extends AbstractDriver {
 
 		String[] parsed = did.substring(DidWebDriver.METHOD_PREFIX.length()).split(":");
 		if (parsed.length < 2) throw new RegistrationException(ErrorMessages.DID_FORMAT_ERROR);
+		String host = parsed[0];
 
-		if (baseUrls.stream().noneMatch(x -> x.getHost().equals(parsed[0]))) throw new RegistrationException(ErrorMessages.WRONG_DOMAIN);
+		if (baseUrls.stream().noneMatch(x -> x.getHost().equals(host))) throw new RegistrationException(ErrorMessages.WRONG_HOST);
 
 		return Paths.get(basePath.toString(), Arrays.stream(parsed)
 													.skip(1)
@@ -226,9 +231,10 @@ public class DidWebDriver extends AbstractDriver {
 			return Paths.get(basePath.toString(), generatedFolder, uuid.toString());
 	}
 
-	private String generateNewDid(UUID uuid, String domain) {
-		if (domain == null) domain = baseUrls.get(0).getHost();
-		return METHOD_PREFIX + domain + ":" + (Strings.isNullOrEmpty(generatedFolder) ? uuid : generatedFolder + ":" + uuid);
+	private String validatedAndGenerateNewDid(UUID uuid, String host) throws RegistrationException {
+		if (baseUrls.stream().noneMatch(x -> x.getHost().equals(host))) throw new RegistrationException(ErrorMessages.WRONG_HOST);
+
+		return METHOD_PREFIX + host + ":" + (Strings.isNullOrEmpty(generatedFolder) ? uuid : generatedFolder + ":" + uuid);
 	}
 
 	public static void storeDidDocument(Path filePath, DIDDocument document) throws IOException {
