@@ -1,6 +1,6 @@
 # Dockerfile for universalregistrar/driver-did-web
 
-FROM maven:3-openjdk-11 AS build
+FROM maven:3-eclipse-temurin-17-focal AS build
 MAINTAINER Markus Sabadello <markus@danubetech.com>
 
 # build driver-did-web
@@ -8,8 +8,9 @@ MAINTAINER Markus Sabadello <markus@danubetech.com>
 ADD . /opt/driver-did-web
 RUN cd /opt/driver-did-web && mvn clean install package -P war -N
 
+# build image
 
-FROM jetty:9.4-jre11-slim
+FROM jetty:9-jdk17-eclipse-temurin
 MAINTAINER Markus Sabadello <markus@danubetech.com>
 
 # variables
