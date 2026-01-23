@@ -50,7 +50,7 @@ public class DidWebDriver extends AbstractDriver {
 																	.map(key -> key + "=" + properties.get(key))
 																	.collect(Collectors.joining(", ", "{", "}")));
 
-		if (basePath == null) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DEFINED);
+/*		if (basePath == null) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DEFINED);
 		if (baseUrls == null) throw new IllegalArgumentException(ErrorMessages.BASE_URL_NOT_DEFINED);
 		for (URL baseUrl : baseUrls) {
 			if (!"https".equals(baseUrl.getProtocol())) throw new IllegalArgumentException(ErrorMessages.WRONG_URL_PROTOCOL + ": (" + baseUrl + ")");
@@ -66,7 +66,7 @@ public class DidWebDriver extends AbstractDriver {
 			}
 		}
 		if (!Files.isDirectory(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_DIRECTORY + " Base path: " + basePath);
-		if (!Files.isWritable(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_WRITEABLE + " Base path: " + basePath);
+		if (!Files.isWritable(basePath)) throw new IllegalArgumentException(ErrorMessages.BASE_PATH_NOT_WRITEABLE + " Base path: " + basePath);*/
 	}
 
 	private static Map<String, Object> getPropertiesFromEnvironment() {
