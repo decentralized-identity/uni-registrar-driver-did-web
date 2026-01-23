@@ -10,7 +10,7 @@ RUN cd /opt/driver-did-web && mvn clean install package -P war -N
 
 # build image
 
-FROM jetty:9-jdk17-eclipse-temurin
+FROM jetty:12-jdk17-eclipse-temurin
 MAINTAINER Markus Sabadello <markus@danubetech.com>
 
 # variables
