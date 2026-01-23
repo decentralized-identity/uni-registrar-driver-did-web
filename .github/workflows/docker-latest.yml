@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  docker-release:
+  docker-latest:
     uses: danubetech/workflows/.github/workflows/docker-latest.yml@main
     with:
       GLOBAL_IMAGE_NAME: universalregistrar/driver-did-web
