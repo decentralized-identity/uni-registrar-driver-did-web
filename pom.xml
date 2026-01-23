@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>decentralized-identity</groupId>
 		<artifactId>uni-registrar</artifactId>
-		<version>0.3.0</version>
+		<version>1.10.0</version>
 	</parent>
 
 	<repositories>
@@ -28,12 +28,15 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 
-		<junit-jupiter.version>5.7.0</junit-jupiter.version>
-		<google.guava.version>30.1.1-jre</google.guava.version>
+		<junit-jupiter.version>6.0.2</junit-jupiter.version>
+		<google.guava.version>33.5.0-jre</google.guava.version>
 		<java-multibase.version>v1.0.0</java-multibase.version>
-		<commons-io.version>2.8.0</commons-io.version>
+		<commons-io.version>2.21.0</commons-io.version>
+		<modelmapper.version>3.2.6</modelmapper.version>
+		<jcl-over-slf4j.version>2.0.17</jcl-over-slf4j.version>
+		<log4j-slf4j2-impl.version>2.25.3</log4j-slf4j2-impl.version>
 	</properties>
 
 	<profiles>
@@ -45,7 +48,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.6.2</version>
 						<executions>
 							<execution>
 								<id>enforce-no-snapshots</id>
@@ -85,10 +88,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-war-plugin</artifactId>
+						<version>3.5.1</version>
 					</plugin>
 					<plugin>
 						<groupId>org.eclipse.jetty</groupId>
 						<artifactId>jetty-maven-plugin</artifactId>
+						<version>11.0.26</version>
 						<configuration>
 							<jettyConfig>
 								${basedir}/src/test/resources/jetty.xml
@@ -120,34 +125,21 @@
 		</profile>
 	</profiles>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<release>${java.version}</release>
+					<forceJavacCompilerUse>true</forceJavacCompilerUse>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>decentralized-identity</groupId>
-			<artifactId>uni-registrar-driver</artifactId>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>decentralized-identity</groupId>
-			<artifactId>did-common-java</artifactId>
-			<scope>compile</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
@@ -155,16 +147,38 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${google.guava.version}</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons-io.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${jcl-over-slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+			<version>${log4j-slf4j2-impl.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>decentralized-identity</groupId>
+			<artifactId>uni-registrar-driver</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>decentralized-identity</groupId>
+			<artifactId>did-common-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${google.guava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+			<version>${modelmapper.version}</version>
 		</dependency>
 	</dependencies>
 </project>

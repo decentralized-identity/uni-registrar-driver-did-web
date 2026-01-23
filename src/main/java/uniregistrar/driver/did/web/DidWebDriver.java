@@ -1,20 +1,17 @@
 package uniregistrar.driver.did.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import foundation.identity.did.DIDDocument;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.modelmapper.ModelMapper;
 import uniregistrar.RegistrationException;
 import uniregistrar.driver.AbstractDriver;
 import uniregistrar.driver.did.web.util.ErrorMessages;
-import uniregistrar.request.CreateRequest;
-import uniregistrar.request.DeactivateRequest;
-import uniregistrar.request.UpdateRequest;
-import uniregistrar.state.CreateState;
-import uniregistrar.state.DeactivateState;
-import uniregistrar.state.SetStateFinished;
-import uniregistrar.state.UpdateState;
+import uniregistrar.openapi.model.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,9 +28,12 @@ import java.util.stream.Collectors;
 
 public class DidWebDriver extends AbstractDriver {
 
+	private static final Logger log = LogManager.getLogger(DidWebDriver.class);
+
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
 	public static final String METHOD_PREFIX = "did:web:";
 	public static final String FILE_NAME = "/did.json";
-	private static final Logger log = LogManager.getLogger(DidWebDriver.class);
 	private String generatedFolder;
 	private List<URL> baseUrls;
 	private Path basePath;
@@ -92,17 +92,23 @@ public class DidWebDriver extends AbstractDriver {
 
 		log.debug("Create request for: {}", () -> request);
 
-		DIDDocument document = request.getDidDocument();
-		if (document == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+        DIDDocument didDocument = null;
+        try {
+            didDocument = request.getDidDocument() == null ? null : DIDDocument.fromJson(objectMapper.writeValueAsString(request.getDidDocument()));
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+        if (didDocument == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 
-		Map<String, Object> options = request.getOptions();
+		RequestOptions options = request.getOptions();
+
+		// Use generated id to build DID when given document doesn't contain an ID
 
 		Path didPath;
 
-		// Use generated id to build DID when given document doesn't contain an ID
-		if (document.getId() == null) {
+		if (didDocument.getId() == null) {
 
-			String host = options == null ? null : (String) options.get("host");
+			String host = options == null ? null : (String) options.getAdditionalProperty("host");
 			if (host == null) host = baseUrls.get(0).getHost();
 
 			UUID uuid = UUID.randomUUID();
@@ -110,10 +116,10 @@ public class DidWebDriver extends AbstractDriver {
 			String did = validatedAndGenerateNewDid(uuid, host);
 			if (log.isInfoEnabled()) log.info("Generated UUID " + uuid + " and new path " + didPath + " and DID: " + did);
 
-			document.getJsonObject().put("id", did);
+			didDocument.getJsonObject().put("id", did);
 		} else {
 
-			didPath = validateAndGetPath(document.getId().toString());
+			didPath = validateAndGetPath(didDocument.getId().toString());
 			if (log.isInfoEnabled()) log.info("Validated path: " + didPath);
 		}
 
@@ -121,32 +127,37 @@ public class DidWebDriver extends AbstractDriver {
 		if (Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_ALREADY_EXISTS);
 
 		try {
-			storeDidDocument(didPath, document);
+			storeDidDocument(didPath, didDocument);
 		} catch (IOException e) {
 			log.error(e);
-			throw new RegistrationException("Cannot store the DID document for " + document.getId().toString());
+			throw new RegistrationException("Cannot store the DID document for " + didDocument.getId().toString());
 		}
 
-		Map<String, Object> result = new HashMap<>();
-		result.put("didDocument", document);
+		DidStateFinished didStateFinished = new DidStateFinished();
+		didStateFinished.setState("finished");
+		didStateFinished.setDid(didDocument.getId().toString());
+		didStateFinished.setDidDocument(objectMapper.convertValue(didDocument, DidDocument.class));
 
-		CreateState registerState = CreateState.build();
-		registerState.setDidState(result);
+		CreateState createState = new CreateState();
+		createState.setDidState(didStateFinished);
 
-		SetStateFinished.setStateFinished(registerState, document.getId().toString(), null);
+		log.debug("Registration is finished: {}", createState);
 
-		log.debug("Registration is finished: {}", () -> registerState);
-
-		return registerState;
+		return createState;
 	}
 
 	@Override
 	public UpdateState update(UpdateRequest request) throws RegistrationException {
 		validateUpdateRequest(request);
 
-		DIDDocument document = request.getDidDocument().get(0);
+        DIDDocument didDocument = null;
+        try {
+            didDocument = DIDDocument.fromJson(objectMapper.writeValueAsString(request.getDidDocument().getLast()));
+        } catch (JsonProcessingException ex) {
+            throw new RegistrationException(ex.getMessage(), ex);
+        }
 
-		if (request.getDid() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
+        if (request.getDid() == null) throw new RegistrationException(ErrorMessages.DID_IS_NULL);
 
 		Path didPath = validateAndGetPath(request.getDid());
 		if (!Files.exists(didPath)) throw new RegistrationException(ErrorMessages.DID_DOESNT_EXIST);
@@ -155,18 +166,19 @@ public class DidWebDriver extends AbstractDriver {
 
 		try {
 			Files.delete(Paths.get(didDocFile.toString(), FILE_NAME));
-			storeDidDocument(didDocFile, document);
+			storeDidDocument(didDocFile, didDocument);
 		} catch (IOException e) {
 			log.error(e);
-			throw new RegistrationException("Cannot store the DID document for " + document.getId());
+			throw new RegistrationException("Cannot store the DID document for " + didDocument.getId());
 		}
 
-		UpdateState updateState = UpdateState.build();
+		DidStateFinished didStateFinished = new DidStateFinished();
+		didStateFinished.setState("finished");
+		didStateFinished.setDid(didDocument.getId().toString());
+		didStateFinished.setDidDocument(objectMapper.convertValue(didDocument, DidDocument.class));
 
-		Map<String, Object> result = new HashMap<>();
-		result.put("state", "finished");
-		result.put("didDocument", document);
-		updateState.setDidState(result);
+		UpdateState updateState = new UpdateState();
+		updateState.setDidState(didStateFinished);
 
 		return updateState;
 	}
@@ -175,10 +187,13 @@ public class DidWebDriver extends AbstractDriver {
 		Preconditions.checkNotNull(request);
 
 		if(request.getDidDocumentOperation() == null) request.setDidDocumentOperation(List.of("setDidDocument"));
-		if(request.getDidDocumentOperation().size()>1 || !"setDidDocument".equals(request.getDidDocumentOperation().get(0))) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_INVALID);
+		for (String didDocumentOperation : request.getDidDocumentOperation()) {
+			if(!"setDidDocument".equals(didDocumentOperation)) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_INVALID);
+		}
 
-		if (request.getDidDocument() == null || request.getDidDocument().get(0) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
-		if(request.getDidDocument().size() > 1) throw new RegistrationException(ErrorMessages.MULTIPLE_DID_DOCS_IN_REQUEST);
+		if (request.getDidDocument() == null || request.getDidDocument().isEmpty() || request.getDidDocument().getLast() == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		if (request.getDidDocument().size() > request.getDidDocumentOperation().size()) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_NULL);
+		if (request.getDidDocument().size() < request.getDidDocumentOperation().size()) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 	}
 
 	@Override
@@ -197,8 +212,14 @@ public class DidWebDriver extends AbstractDriver {
 			throw new RegistrationException(e.getMessage());
 		}
 
+		DidStateFinished didStateFinished = new DidStateFinished();
+		didStateFinished.setState("finished");
 
-		return DeactivateState.build(null, Map.of("state", "finished"), null, null);
+		DeactivateState deactivateState = new DeactivateState();
+		deactivateState.setDidState(didStateFinished);
+
+
+		return deactivateState;
 
 	}
 
