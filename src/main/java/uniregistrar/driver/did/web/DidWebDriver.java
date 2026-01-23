@@ -152,7 +152,7 @@ public class DidWebDriver extends AbstractDriver {
 
         DIDDocument didDocument = null;
         try {
-            didDocument = DIDDocument.fromJson(objectMapper.writeValueAsString(request.getDidDocument().getLast()));
+            didDocument = DIDDocument.fromJson(objectMapper.writeValueAsString(request.getDidDocument().get(request.getDidDocument().size()-1)));
         } catch (JsonProcessingException ex) {
             throw new RegistrationException(ex.getMessage(), ex);
         }
@@ -191,7 +191,7 @@ public class DidWebDriver extends AbstractDriver {
 			if(!"setDidDocument".equals(didDocumentOperation)) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_INVALID);
 		}
 
-		if (request.getDidDocument() == null || request.getDidDocument().isEmpty() || request.getDidDocument().getLast() == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
+		if (request.getDidDocument() == null || request.getDidDocument().isEmpty() || request.getDidDocument().get(request.getDidDocument().size()-1) == null) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 		if (request.getDidDocument().size() > request.getDidDocumentOperation().size()) throw new RegistrationException(ErrorMessages.DID_DOC_OP_IS_NULL);
 		if (request.getDidDocument().size() < request.getDidDocumentOperation().size()) throw new RegistrationException(ErrorMessages.DID_DOC_IS_NULL);
 	}
