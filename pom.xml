@@ -91,9 +91,9 @@
 						<version>3.5.1</version>
 					</plugin>
 					<plugin>
-						<groupId>org.eclipse.jetty</groupId>
-						<artifactId>jetty-maven-plugin</artifactId>
-						<version>11.0.26</version>
+						<groupId>org.eclipse.jetty.ee11</groupId>
+						<artifactId>jetty-ee11-maven-plugin</artifactId>
+						<version>12.1.5</version>
 						<configuration>
 							<jettyConfig>
 								${basedir}/src/test/resources/jetty.xml
@@ -111,9 +111,6 @@
 							</systemProperties>
 							<webApp>
 								<contextPath>/</contextPath>
-								<jettyEnvXml>
-									${basedir}/src/test/resources/jetty-env.xml
-								</jettyEnvXml>
 								<webInfIncludeJarPattern>^$</webInfIncludeJarPattern>
 								<containerIncludeJarPattern>^$</containerIncludeJarPattern>
 								<throwUnavailableOnStartupException>true</throwUnavailableOnStartupException>
